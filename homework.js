@@ -57,7 +57,12 @@ const orders = [
  */
 function getProductById(products, productId) {
   // 請實作此函式
-}
+  let result = products.find(function(product) {
+    return product.id === productId;
+  });
+  return result || null;
+};
+
 
 /**
  * 2. 根據分類篩選產品
@@ -67,7 +72,15 @@ function getProductById(products, productId) {
  */
 function getProductsByCategory(products, category) {
   // 請實作此函式
-}
+  if (category === "全部"){
+    return products;
+  }else{
+    let result =products.filter(function(product){
+      return product.category === category;
+    });
+    return result;
+  }
+};
 
 /**
  * 3. 計算產品折扣率
@@ -77,6 +90,8 @@ function getProductsByCategory(products, category) {
  */
 function getDiscountRate(product) {
   // 請實作此函式
+  let discount = Math.round(product.price / product.origin_price *100) / 10;
+  return discount + "折";
 }
 
 /**
@@ -86,6 +101,12 @@ function getDiscountRate(product) {
  */
 function getAllCategories(products) {
   // 請實作此函式
+   let categories = products.map(function(product){
+    return product.category;
+   });
+    let uniCatogeries = [...new Set(categories)];
+    return uniCatogeries;
+
 }
 
 // ========================================
@@ -99,6 +120,10 @@ function getAllCategories(products) {
  */
 function calculateCartOriginalTotal(carts) {
   // 請實作此函式
+  let total = carts.reduce(function(acc, cart){
+    return acc + cart.product.origin_price * cart.quantity;
+  },0);
+  return total;
 }
 
 /**
@@ -108,6 +133,10 @@ function calculateCartOriginalTotal(carts) {
  */
 function calculateCartTotal(carts) {
   // 請實作此函式
+  let total = carts.reduce(function(acc, cart){
+    return acc + cart.product.price * cart. quantity;
+  },0);
+  return total;
 }
 
 /**
@@ -117,6 +146,9 @@ function calculateCartTotal(carts) {
  */
 function calculateSavings(carts) {
   // 請實作此函式
+  let originalTotal = calculateCartOriginalTotal(carts);
+  let total = calculateCartTotal(carts);
+  return originalTotal - total;
 }
 
 /**
@@ -125,8 +157,12 @@ function calculateSavings(carts) {
  * @returns {number} - 回傳所有商品的 quantity 總和
  */
 function calculateCartItemCount(carts) {
-  // 請實作此函式
+  let count = carts.reduce(function(acc, cart) {
+    return acc + cart.quantity;
+  }, 0);
+  return count;
 }
+
 
 /**
  * 5. 檢查產品是否已在購物車中
@@ -136,6 +172,10 @@ function calculateCartItemCount(carts) {
  */
 function isProductInCart(carts, productId) {
   // 請實作此函式
+  let result = carts.some(function(cart){
+    return cart.product.id === productId;
+  });
+  return result;
 }
 
 // ========================================
@@ -151,8 +191,30 @@ function isProductInCart(carts, productId) {
  * 如果產品已存在，合併數量；如果不存在，新增一筆
  */
 function addToCart(carts, product, quantity) {
-  // 請實作此函式
+  // 第 1 步：用 some 檢查購物車有沒有這個商品
+  let isExist = carts.some(function(cart){
+    return cart.product.id === product.id;
+  });
+
+  if (isExist) {
+    // 情況 A：已存在 → 用 forEach 走訪，找到那一筆就加數量
+    carts.forEach(function(cart){
+      if (cart.product.id === product.id) {
+        cart.quantity += quantity;
+      }
+    });
+  } else {
+    // 情況 B：不存在 → 用 push 加一筆新的
+    carts.push({
+      id: `cart-${Date.now()}`,
+      product: product,
+      quantity: quantity
+    });
+  }
+
+  return carts;
 }
+
 
 /**
  * 2. 更新購物車商品數量
@@ -163,6 +225,18 @@ function addToCart(carts, product, quantity) {
  */
 function updateCartItemQuantity(carts, cartId, newQuantity) {
   // 請實作此函式
+   if (newQuantity <= 0){
+    return carts.filter(function(cart){
+      return cart.id !== cartId;
+    });
+  }else{
+    carts.forEach(function(cart){
+      if (cart.id === cartId) {
+        cart.quantity = newQuantity;
+      }
+    });
+    return carts;
+   }
 }
 
 /**
@@ -173,6 +247,10 @@ function updateCartItemQuantity(carts, cartId, newQuantity) {
  */
 function removeFromCart(carts, cartId) {
   // 請實作此函式
+   let newCart = carts.filter(function(cart){
+    return cart.id !== cartId;
+   });
+   return newCart;
 }
 
 /**
@@ -181,6 +259,7 @@ function removeFromCart(carts, cartId) {
  */
 function clearCart() {
   // 請實作此函式
+  return [];
 }
 
 // ========================================
@@ -232,7 +311,14 @@ function generateOrderReport(orders) {
  * }
  */
 function groupOrdersByPayment(orders) {
-  // 請實作此函式
+  return orders.reduce(function(acc, order) {
+    let payment = order.user.payment;
+    if (!acc[payment]) {
+      acc[payment] = [];
+    }
+    acc[payment].push(order);
+    return acc;
+  }, {});
 }
 
 // ========================================
